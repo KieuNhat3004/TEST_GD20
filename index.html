@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giao Diện Điều Khiển</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <style>
+    :root {
+          /* Status command display colors and backgrounds */
+        --status-stopped-text-color: #b91c1c; 
+        --status-stopped-bg-color: rgba(220, 38, 38, 0.08); 
+        --status-stopped-border-color: rgba(220, 38, 38, 0.3); 
+
+        --status-running-text-color: #047426; 
+        --status-running-bg-color: rgba(239, 244, 240, 0.818); 
+        --status-running-border-color: rgba(22, 163, 74, 0.3); 
+        /* Colors for blinking effect when running */
+        --status-running-bg-blink-color: rgb(197, 248, 76); 
+        --status-running-border-blink-color: rgba(4, 56, 247, 0.851); 
+    }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            width: 100vw; /* Đảm bảo body chiếm toàn bộ chiều rộng màn hình */
+            border-radius: 20px; /* Bo góc của nền */
+            /* padding: 10px;  */
+        }
+
+       .container {
+            text-align: center;
+            background-color: #ffffff;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 15px; /* Bo góc của container */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 95%; /* Giảm width để có không gian ở hai bên */
+            max-width: 100%; /* Giới hạn chiều rộng tối đa */
+            align-items: center; /* Căn giữa các phần tử trong container */
+
+        }
+
+        .settings {
+            display: flex;
+            align-items: center; /* Đảm bảo các phần tử trong cùng một hàng */
+            justify-content: center; 
+            margin-bottom: 8px;
+            align-items: center; /* Căn giữa các phần tử trong container */
+        }
+
+        .settings p {
+        font-size: 20px;
+        margin: 0;
+        margin-right: 10px; /* Khoảng cách giữa chữ và nút */
+    }
+
+        .frequency-text {
+            color: #007bff;
+            font-size: 24px;
+            font-weight: bold;
+            margin-left: 10px; /* Khoảng cách giữa số Hz và chữ */
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100px;
+        }
+
+        #change-button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            min-width: 100px;
+            margin-left: 8px; /* Đảm bảo có khoảng cách giữa nút và tần số */
+        }
+
+        #start-button {
+            background-color: #28a745;
+            color: white;
+        }
+
+        #stop-button {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        #start-button, #stop-button {
+            padding: 15px 40px; /* Tăng padding để làm nút lớn hơn */
+            font-size: 16px; /* Tăng kích thước chữ để nút rõ ràng hơn */
+            width: auto; /* Đảm bảo nút có kích thước tự động phù hợp với nội dung */
+        }
+
+        .popup {
+            display: none;
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .popup-content {
+            background-color: white;
+            padding: 15px; /* Giảm padding để các phần tử sát nhau */
+            border-radius: 10px;
+            width: 30%;  /* Chiều rộng của cửa sổ popup */
+            max-width: 200px;  /* Giới hạn chiều rộng tối đa */
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: auto;  /* Điều chỉnh chiều cao cho phù hợp với nội dung */
+            position: relative; /* Để nút "X" có thể căn góc phải */
+        }
+
+        .popup-content h2 {
+            font-size: 18px;
+            margin-bottom: 10px; /* Giảm khoảng cách giữa tiêu đề và ô nhập */
+        }
+
+        input {
+            padding: 10px;
+            font-size: 22px;
+            width: 80%;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            text-align: center; /* Căn giữa chữ trong ô nhập */
+            border: 1px solid #ccc;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        #save-button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px; /* Giữ padding phù hợp để chữ không bị cắt */
+            font-size: 16px; /* Đảm bảo font size vừa phải */
+            width: 70%; /* Đặt chiều rộng nút chiếm toàn bộ chiều rộng popup-content */
+            box-sizing: border-box; /* Đảm bảo padding được tính trong chiều rộng */
+        }
+
+        .close-button {
+            cursor: pointer;
+            font-size: 2.0em;
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            color: black;
+        }
+
+        .popup-content .button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .popup-content .button-container button {
+            width: auto;  /* Đảm bảo nút "Lưu cài đặt" có kích thước vừa đủ */
+            margin: 0 5px; /* Giảm khoảng cách giữa các nút */
+        }
+
+        /* Popup xác nhận hành động */
+        #action-confirmation-popup {
+            display: none;
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+
+
+        /* Các nút trong popup xác nhận */
+        #confirm-button, #cancel-button {
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        #confirm-button {
+            background-color: #28a745; /* Màu nút xác nhận */
+            color: white;
+        }
+
+        #cancel-button {
+            background-color: #dc3545; /* Màu nút hủy */
+            color: white;
+        }
+
+        /* Styles for statusCommand to have background and border */
+        #statusCommand {
+            font-size: 1.35em; /* Further increased font size for "ĐANG CHẠY/DỪNG" */
+            font-weight: bold;
+            padding: 15px 15px; 
+            border-radius: 10px; 
+            border-width: 2.5px; 
+            border-style: solid;
+            border-color: transparent; 
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+            min-width: 200px; /* Adjusted min-width */
+            text-align: center;
+            margin-bottom: 0px;
+            margin-top: 5px; /* Added margin-top for spacing */
+        }
+
+        /* Blinking animation for Running status */
+        @keyframes blink-running {
+        0%, 100% {
+            background-color: var(--status-running-bg-color);
+            border-color: var(--status-running-border-color);
+            color: var(--status-running-text-color);
+        }
+        50% {
+            background-color: var(--status-running-bg-blink-color);
+            border-color: var(--status-running-border-blink-color);
+            color: var(--status-running-text-color); 
+        }
+        }
+
+        .blink-running {
+        animation-name: blink-running;
+        animation-duration: 1.2s;
+        animation-iteration-count: infinite;
+        animation-timing-function: ease-in-out;
+        }
+
+
+        @keyframes custom-spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+        .custom-spin { animation: custom-spin 1.5s linear infinite; }
+
+    /* Điều chỉnh layout cho các nút khi màn hình nhỏ */
+@media screen and (max-width: 480px) {
+    .container {
+        width: 95%; /* Đảm bảo chiều rộng container chiếm 100% */
+        padding: 10px; /* Giảm khoảng cách padding */
+    }
+
+    /* Sắp xếp lại các nút "CHẠY" và "DỪNG" trên một hàng ngang */
+    .settings {
+        display: flex;
+        justify-content: center;  /* Căn giữa các phần tử */
+        flex-wrap: wrap;  /* Cho phép các nút bẻ xuống hàng nếu không đủ chỗ */
+    }
+
+    .settings button {
+        width: 45%; /* Mỗi nút chiếm 45% chiều rộng của hàng */
+        margin: 5px; /* Khoảng cách giữa các nút */
+    }
+
+    #start-button, #stop-button {
+        width: 45%;  /* Đảm bảo hai nút chạy và dừng chiếm 45% chiều rộng */
+        padding: 10px 20px;
+        font-size: 16px;
+    }
+
+    /* Thay đổi chiều rộng của popup khi màn hình nhỏ */
+    .popup-content {
+        width: 70%;
+        max-width: 250px;
+    }
+
+    /* Cải thiện khoảng cách giữa các nút trong popup */
+    .popup-content .button-container {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    /* Nút "Lưu cài đặt" trong popup */
+    #save-button {
+        width: 100%;
+        margin-top: 10px;
+    }
+}
+@media (max-width:400px){
+    .container {
+        width: 95%; /* Đảm bảo chiều rộng container chiếm 100% */
+        padding: 10px; /* Giảm khoảng cách padding */
+    }
+
+}
+
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="settings">
+                <p>Tần số đang cài:</p>
+                <p id="frequency-text" class="frequency-text">0Hz</p> <!-- 0Hz nằm dưới Tần số đang cài -->
+            <button id="change-button">THAY ĐỔI</button> <!-- Nút "THAY ĐỔI" nằm cùng dòng với tần số -->
+        </div>
+        <button id="start-button">CHẠY</button>
+        <button id="stop-button">DỪNG</button>
+        <h3 class="status" id="statusCommand" >ĐANG DỪNG</h3>
+
+    <!-- Popup cho việc thay đổi tần số -->
+    <div id="popup" class="popup">
+        <div class="popup-content">
+            <span class="close-button">&times;</span>
+            <h2>Nhập tần số mới</h2>
+            <input type="number" id="frequency-input" min="0" max="50" placeholder="0-50 Hz">
+            <button id="save-button">Lưu cài đặt</button>
+        </div>
+    </div>
+
+    <!-- Popup xác nhận khi nhấn nút "CHẠY" hoặc "DỪNG" -->
+    <div id="action-confirmation-popup" class="popup">
+        <div class="popup-content">
+            <h2>Xác nhận hành động</h2>
+            <button id="confirm-button">Xác nhận</button>
+            <button id="cancel-button">Hủy</button>
+        </div>
+    </div>
+
+
+    <script src="https://www.unpkg.com/@eohjsc/era-widget@1.1.3/src/index.js"></script>
+    <script>
+
+        const confirm_button = document.getElementById('confirm-button');
+        const btn_savedata = document.getElementById('save-button'); 
+
+
+        // let readStatus = null ,readHzSET = null, actionRUN = null, actionSTOP = null, actionREF = null;
+        let readStatus = null ,readHzSET = null, actions = [];
+        // Biến lưu hành động đang thực hiện (CHẠY hoặc DỪNG)
+        let currentAction = null;
+        const TrangThai = document.getElementById('statusCommand'); 
+
+
+        eraWidget = new EraWidget();
+        eraWidget.init({
+            needRealtimeConfigs: true,         /* Cần giá trị hiện thời */
+            needHistoryConfigs: true,          /* Cần giá trị lịch sử */
+            needActions: true,                 /* Cần các hành động (ví dụ Bật/Tắt đèn) */
+            maxRealtimeConfigsCount: 2,        /* Số lượng tối đa giá trị hiện thời */
+            maxHistoryConfigsCount: 1,         /* Số lượng tối đa giá trị lịch sử */
+            maxActionsCount: 3,                /* Số lượng tối đa các hành động có thể kích hoạt */
+            minRealtimeConfigsCount: 0,        /* Số lượng tối thiểu giá trị hiện thời */
+            minHistoryConfigsCount: 0,         /* Số lượng tối thiểu giá trị lịch sử */
+            minActionsCount: 0,                /* Số lượng tối thiểu hành động */
+            mobileHeight: 220,                 /* Thiết lập chiều cao hiển thị trên mobile app E-Ra, mặc đinh 300px */
+
+            onConfiguration: (config) => {
+                readStatus = config.realtime_configs[0];
+                readHzSET = config.realtime_configs[1];
+                actions = config.actions;
+            },
+            onValues: (values) => {
+            const valueStatus = values[readStatus.id].value;
+            const valueHZSET= values[readHzSET.id].value;
+
+            // Cập nhật tần số
+            document.getElementById('frequency-text').innerText = (valueHZSET/100) + 'Hz';
+
+            if (valueStatus === 1) { // ĐANG CHẠY
+                TrangThai.innerHTML = `<i class="fas fa-fan custom-spin" style="margin-right: 8px;"></i>ĐANG CHẠY`;
+                TrangThai.style.color = 'var(--status-running-text-color)';
+                TrangThai.style.backgroundColor = 'var(--status-running-bg-color)';
+                TrangThai.style.borderColor = 'var(--status-running-border-color)';
+                TrangThai.classList.add('blink-running'); // Add blinking class
+                const icon = TrangThai.querySelector('i');
+            if(icon) icon.style.color = 'var(--status-running-text-color)';
+            } else { // ĐANG DỪNG
+                TrangThai.innerHTML = `<i class="fas fa-fan" style="margin-right: 8px;"></i>ĐANG DỪNG`;
+                TrangThai.style.color = 'var(--status-stopped-text-color)';
+                TrangThai.style.backgroundColor = 'var(--status-stopped-bg-color)';
+                TrangThai.style.borderColor = 'var(--status-stopped-border-color)';
+                TrangThai.classList.remove('blink-running'); // Remove blinking class
+                const icon = TrangThai.querySelector('i');
+            if(icon) icon.style.color = 'var(--status-stopped-text-color)';
+            }
+        }
+        });
+
+        // Mở popup khi nhấn nút "THAY ĐỔI"
+        document.getElementById('change-button').onclick = function() {
+            document.getElementById('popup').style.display = 'flex';
+        };
+
+        // Đóng popup khi nhấn nút đóng
+        document.querySelector('.close-button').onclick = function() {
+            document.getElementById('popup').style.display = 'none';
+        };
+
+       // Lưu cài đặt tần số khi nhấn "Lưu cài đặt"
+        btn_savedata.addEventListener('click', () => {
+            const frequencyInput = document.getElementById('frequency-input');
+            const frequency = frequencyInput.value;
+
+            // Kiểm tra nếu tần số không hợp lệ (số âm, không phải số nguyên, hoặc lớn hơn 50)
+            if (!Number.isInteger(parseFloat(frequency)) || frequency < 0 || frequency > 50) {
+                // Chuyển màu chữ thành đỏ
+                document.getElementById('frequency-text').style.color = 'red';
+
+                // Xóa giá trị ngay lập tức và khôi phục màu sắc chữ
+                frequencyInput.value = ''; // Xóa giá trị trong ô nhập
+                document.getElementById('frequency-text').style.color = ''; // Khôi phục màu sắc chữ
+                frequencyInput.focus(); // Đưa con trỏ vào ô nhập
+            } else {
+                // Cập nhật tần số và đóng popup nếu hợp lệ
+                eraWidget.triggerAction(actions[2].action, null,{value: parseInt(frequency*100)});
+                document.getElementById('frequency-text').innerText = frequency + 'Hz';
+                document.getElementById('popup').style.display = 'none';
+            }
+        });
+
+
+        // Mở popup xác nhận khi nhấn nút "CHẠY"
+        document.getElementById('start-button').onclick = function() {
+            document.getElementById('action-confirmation-popup').style.display = 'flex';
+            currentAction = 'start'; // Đánh dấu hành động là "CHẠY"
+            // Thay đổi tiêu đề popup khi nhấn "CHẠY"
+            document.querySelector('#action-confirmation-popup .popup-content h2').innerText = 'Xác nhận CHẠY';
+        };
+
+        // Mở popup xác nhận khi nhấn nút "DỪNG"
+        document.getElementById('stop-button').onclick = function() {
+            document.getElementById('action-confirmation-popup').style.display = 'flex';
+            currentAction = 'stop'; // Đánh dấu hành động là "DỪNG"
+            // Thay đổi tiêu đề popup khi nhấn "DỪNG"
+            document.querySelector('#action-confirmation-popup .popup-content h2').innerText = 'Xác nhận DỪNG';
+        };
+
+        // Xử lý xác nhận hành động
+        // document.getElementById('confirm-button').onclick = function() {
+        confirm_button.addEventListener('click', () => {
+            // console.log(`Hành động hiện tại: ${currentAction}`); // Kiểm tra giá trị của currentAction
+
+            if (currentAction === 'start') {
+                // Thực hiện hành động "CHẠY"
+                eraWidget.triggerAction(actions[0]?.action, null);
+                document.getElementById('action-confirmation-popup').style.display = 'none';
+            } else if (currentAction === 'stop') {
+                // Thực hiện hành động "DỪNG"
+                eraWidget.triggerAction(actions[1]?.action, null);
+                document.getElementById('action-confirmation-popup').style.display = 'none';
+            }
+        });
+
+        // Xử lý hủy bỏ hành động
+        document.getElementById('cancel-button').onclick = function() {
+            document.getElementById('action-confirmation-popup').style.display = 'none';
+        };
+
+    </script>
+</body>
+</html>
